@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,116 +41,117 @@
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+        const ctx = canvas.getContext('2d');
 
-    window.addEventListener('resize', () => {
-        width = window.innerWidth;
-        height = window.innerHeight;
+        let width = window.innerWidth;
+        let height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
-    });
 
-    const player = {
-        x: 50,
-        y: height - 150,
-        w: 50,
-        h: 50,
-        dy: 0,
-        gravity: 1.5,
-        jumpForce: -20,
-        grounded: false,
-        color: '#2196f3',
-    };
-
-    const obstacles = [];
-
-    function spawnObstacle() {
-        const size = 50 + Math.random() * 50;
-        obstacles.push({
-            x: width,
-            y: height - size - 20,
-            w: size,
-            h: size,
-            color: '#e91e63'
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
         });
-    }
 
-    let spawnTimer = 0;
-    let score = 0;
+        const player = {
+            x: 50,
+            y: height - 150,
+            w: 50,
+            h: 50,
+            dy: 0,
+            gravity: 1.5,
+            jumpForce: -20,
+            grounded: false,
+            color: '#2196f3',
+        };
 
-    function update() {
-        ctx.clearRect(0, 0, width, height);
+        const obstacles = [];
 
-        // Player
-        player.dy += player.gravity;
-        player.y += player.dy;
-
-        if (player.y + player.h >= height - 20) {
-            player.y = height - player.h - 20;
-            player.grounded = true;
-            player.dy = 0;
-        } else {
-            player.grounded = false;
+        function spawnObstacle() {
+            const size = 50 + Math.random() * 50;
+            obstacles.push({
+                x: width,
+                y: height - size - 20,
+                w: size,
+                h: size,
+                color: '#e91e63'
+            });
         }
 
-        ctx.fillStyle = player.color;
-        ctx.fillRect(player.x, player.y, player.w, player.h);
+        let spawnTimer = 0;
+        let score = 0;
 
-        // Obstacles
-        spawnTimer++;
-        if (spawnTimer > 100) {
-            spawnObstacle();
-            spawnTimer = 0;
-        }
+        function update() {
+            ctx.clearRect(0, 0, width, height);
 
-        for (let i = obstacles.length - 1; i >= 0; i--) {
-            const obs = obstacles[i];
-            obs.x -= 6;
-            ctx.fillStyle = obs.color;
-            ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+            // Player physics
+            player.dy += player.gravity;
+            player.y += player.dy;
 
-            // Collision detection
-            if (
-                player.x < obs.x + obs.w &&
-                player.x + player.w > obs.x &&
-                player.y < obs.y + obs.h &&
-                player.y + player.h > obs.y
-            ) {
-                alert('Game Over! Your score: ' + score);
-                document.location.reload();
+            if (player.y + player.h >= height - 20) {
+                player.y = height - player.h - 20;
+                player.grounded = true;
+                player.dy = 0;
+            } else {
+                player.grounded = false;
             }
 
-            if (obs.x + obs.w < 0) {
-                obstacles.splice(i, 1);
-                score++;
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+
+            // Obstacles
+            spawnTimer++;
+            if (spawnTimer > 100) {
+                spawnObstacle();
+                spawnTimer = 0;
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= 6;
+                ctx.fillStyle = obs.color;
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+
+                // Collision detection
+                if (
+                    player.x < obs.x + obs.w &&
+                    player.x + player.w > obs.x &&
+                    player.y < obs.y + obs.h &&
+                    player.y + player.h > obs.y
+                ) {
+                    alert('Game Over! Your score: ' + score);
+                    document.location.reload();
+                }
+
+                if (obs.x + obs.w < 0) {
+                    obstacles.splice(i, 1);
+                    score++;
+                }
+            }
+
+            // Score display
+            ctx.fillStyle = '#000';
+            ctx.font = '24px Arial';
+            ctx.fillText('Score: ' + score, 20, 40);
+
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+        });
+
+        document.getElementById('jumpBtn').addEventListener('touchstart', jump);
+
+        function jump() {
+            if (player.grounded) {
+                player.dy = player.jumpForce;
             }
         }
 
-        // Score
-        ctx.fillStyle = '#000';
-        ctx.font = '24px Arial';
-        ctx.fillText('Score: ' + score, 20, 40);
-
-        requestAnimationFrame(update);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' || e.code === 'ArrowUp') jump();
-    });
-
-    document.getElementById('jumpBtn').addEventListener('touchstart', jump);
-
-    function jump() {
-        if (player.grounded) {
-            player.dy = player.jumpForce;
-        }
-    }
-
-    update();
-</script>
-
+        update();
+    </script>
 </body>
 </html>
