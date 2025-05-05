@@ -1,14 +1,155 @@
-<!DOCTYPE html><html><head>
-    <script src="js/p5.js"></script>
-    <script src="js/p5.dom.min.js"></script>
-    <script src="js/p5.sound.min.js"></script>
-<script src="js/p5.play.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Runner - Mobile Optimized</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background: #333;
+        }
+        canvas {
+            display: block;
+            background: #f0f0f0;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            margin: 0 20px;
+            padding: 20px;
+            background: #444;
+            color: #fff;
+            font-size: 18px;
+            border-radius: 10px;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+        <div class="btn" id="jumpBtn">Jump</div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
 
-  </head>
-  <body>
-      <script src="sketch.js"></script>
-  
+    window.addEventListener('resize', () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    });
 
-</body></html>
+    const player = {
+        x: 50,
+        y: height - 150,
+        w: 50,
+        h: 50,
+        dy: 0,
+        gravity: 1.5,
+        jumpForce: -20,
+        grounded: false,
+        color: '#2196f3',
+    };
+
+    const obstacles = [];
+
+    function spawnObstacle() {
+        const size = 50 + Math.random() * 50;
+        obstacles.push({
+            x: width,
+            y: height - size - 20,
+            w: size,
+            h: size,
+            color: '#e91e63'
+        });
+    }
+
+    let spawnTimer = 0;
+    let score = 0;
+
+    function update() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Player
+        player.dy += player.gravity;
+        player.y += player.dy;
+
+        if (player.y + player.h >= height - 20) {
+            player.y = height - player.h - 20;
+            player.grounded = true;
+            player.dy = 0;
+        } else {
+            player.grounded = false;
+        }
+
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+
+        // Obstacles
+        spawnTimer++;
+        if (spawnTimer > 100) {
+            spawnObstacle();
+            spawnTimer = 0;
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            const obs = obstacles[i];
+            obs.x -= 6;
+            ctx.fillStyle = obs.color;
+            ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+
+            // Collision detection
+            if (
+                player.x < obs.x + obs.w &&
+                player.x + player.w > obs.x &&
+                player.y < obs.y + obs.h &&
+                player.y + player.h > obs.y
+            ) {
+                alert('Game Over! Your score: ' + score);
+                document.location.reload();
+            }
+
+            if (obs.x + obs.w < 0) {
+                obstacles.splice(i, 1);
+                score++;
+            }
+        }
+
+        // Score
+        ctx.fillStyle = '#000';
+        ctx.font = '24px Arial';
+        ctx.fillText('Score: ' + score, 20, 40);
+
+        requestAnimationFrame(update);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+    });
+
+    document.getElementById('jumpBtn').addEventListener('touchstart', jump);
+
+    function jump() {
+        if (player.grounded) {
+            player.dy = player.jumpForce;
+        }
+    }
+
+    update();
+</script>
+
+</body>
+</html>
